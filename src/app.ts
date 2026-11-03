@@ -12,7 +12,8 @@ import newsletterRouter from "./routes/newsletter.js";
 const app = express();
 app.disable("x-powered-by");
 app.set("trust proxy", 1);
-app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
+const helmetMiddleware = helmet as unknown as (options?: Record<string, unknown>) => express.RequestHandler;
+app.use(helmetMiddleware({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
 app.use(cors({
   origin: (process.env.CLIENT_ORIGIN || "http://localhost:3000").split(",").map((x) => x.trim()),
   credentials: true,

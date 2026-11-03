@@ -51,6 +51,31 @@ router.get("/", (req, res, next) =>
   },
 );
 
+router.get("/:id/availability", async (req, res, next) => {
+  try {
+    const id = req.params.id;
+    const date = req.query.date;
+    if (typeof id !== "string" || !ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid studio ID." });
+    }
+    if (typeof date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      return res.status(400).json({ message: "Choose a valid date in YYYY-MM-DD format." });
+    }
+    const parsedDate = new Date(`${date}T00:00:00.000Z`);
+    if (!Number.isFinite(parsedDate.getTime()) || parsedDate.toISOString().slice(0, 10) !== date) {
+      return res.status(400).json({ message: "Choose a valid calendar date." });
+    }
+    const db = await getDb();
+    const studio = await db.collection("studios").findOne({ _id: new ObjectId(id) }, { projection: { _id: 1 } });
+    if (!studio) return res.status(404).json({ message: "Studio not found." });
+    const confirmed = await db.collection("bookings").find(
+      { studioId: id, date, status: "Confirmed" },
+      { projection: { _id: 0, startTime: 1, endTime: 1 } },
+    ).sort({ startTime: 1 }).toArray();
+    return res.json({ data: confirmed, date, timezone: "UTC" });
+  } catch (error) { return next(error); }
+});
+
 router.get("/:id/reviews", async (req, res, next) => {
   try {
     const id = req.params.id;

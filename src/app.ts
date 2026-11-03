@@ -22,6 +22,27 @@ app.use(express.json({ limit: "1mb" }));
 app.use(cookieParser());
 app.use(rateLimit({ windowMs: 60_000, limit: 180, standardHeaders: "draft-7", legacyHeaders: false }));
 
+app.get("/", (_req, res) => res.status(200).json({
+  name: "StudioSpace API",
+  status: "online",
+  description: "Peer-to-peer creative workspace and production studio marketplace API.",
+  version: "1.0.0",
+  health: "/health",
+  endpoints: {
+    studios: "/api/studios",
+    featuredStudios: "/api/studios/featured",
+    bookings: "/api/bookings",
+    wishlist: "/api/wishlist",
+    newsletter: "/api/newsletter",
+  },
+  documentation: "https://github.com/samscaleup777/AS-backend",
+}));
+app.get("/api", (_req, res) => res.status(200).json({
+  name: "StudioSpace API",
+  status: "online",
+  endpoints: ["/api/studios", "/api/studios/featured", "/api/bookings", "/api/wishlist", "/api/newsletter"],
+  health: "/health",
+}));
 app.get("/health", (_req, res) => res.json({
   status: "ok",
   service: "studiospace-api",

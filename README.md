@@ -1,32 +1,69 @@
 # StudioSpace — Backend API
 
-Production API for the StudioSpace creative workspace marketplace, built with Express 5, TypeScript, MongoDB, Better Auth JWT/JWKS verification, and Zod validation.
+The Express API for **StudioSpace**, a peer-to-peer creative workspace and production studio marketplace.
+
+- **Frontend:** https://as-kappa-six.vercel.app
+- **API root:** https://as-two-lac.vercel.app/
+- **Health:** https://as-two-lac.vercel.app/health
+- **Source repository:** https://github.com/samscaleup777/AS-backend
 
 ## Features
-- Public studio discovery, featured studios, detail and review reads.
-- Owner-only studio create, update and delete operations.
-- Better Auth JWT verification from the HttpOnly `better_auth_jwt` cookie or a Bearer token.
-- Booking requests, customer/host views, booking status lifecycle and confirmed-slot collision checks.
-- Database-backed short-lived studio/date lock during host confirmations.
-- Saved-studio wishlist and newsletter subscription persistence.
-- MongoDB indexes, Helmet security headers, CORS allowlist and rate limiting.
+
+- Public studio directory, featured listings, studio details and review retrieval.
+- Date-specific availability lookup that returns already-confirmed time windows.
+- Owner-only studio create, update and delete operations with account ownership checks.
+- Better Auth JWT/JWKS verification from the HttpOnly `better_auth_jwt` cookie or an Authorization Bearer token.
+- Booking requests with server-calculated duration and total, Pending/Confirmed/Completed/Cancelled lifecycle and confirmed-slot overlap prevention.
+- Database-backed studio/date locks to serialize host booking confirmations.
+- Persistent saved-studio wishlist and newsletter subscription endpoints.
+- MongoDB indexes, Zod request validation, Helmet security headers, CORS allowlist and rate limiting.
+
+## Technology
+
+Express 5, Node.js 22, TypeScript 5, MongoDB 6, Zod 4, jose, Helmet, CORS, cookie-parser and express-rate-limit.
 
 ## Local setup
-1. Copy `.env.example` to `.env`.
-2. Set `MONGODB_URI`, `MONGODB_DB`, `AUTH_BASE_URL`, and `CLIENT_ORIGIN`.
-3. Run `npm install`.
-4. Run `npm run dev` (default port `4000`).
+
+1. Install Node.js 22.
+2. Clone this repository.
+3. Copy `.env.example` to `.env`.
+4. Configure `MONGODB_URI`, `MONGODB_DB=studiospace`, `AUTH_BASE_URL` (the frontend origin), and `CLIENT_ORIGIN` (the frontend origin).
+5. Run `npm install`.
+6. Run `npm run dev` to start the API on port 4000.
 
 ## Build and tests
-- `npm run build`
-- `npm test`
 
-## Vercel
-Connect this repository to Vercel and use the repository root. Vercel's Express framework detection uses `src/index.ts`, which exports the Express app as the default export. Do not add an `api/` catch-all function. Set Node.js 22 and configure the environment variables from `.env.example` in the Vercel dashboard.
+```bash
+npm run build
+npm test
+npm start
+```
 
-## Render
-Use the repository root as the service root, runtime Node, build command `npm install && npm run build`, and start command `npm start`. Configure the environment variables from `.env.example` in the hosting dashboard.
+The isolated booking-rule suite covers calendar-date validation, 24-hour time windows, overlap detection, booking duration and price calculation.
 
-Health check: `GET /health`.
+## API routes
 
-Never commit `.env`, database connection strings, OAuth credentials, or production secrets.
+- `GET /` — API status and endpoint directory.
+- `GET /health` — health status.
+- `GET /api/studios` and `GET /api/studios/featured` — public studio directory and featured listings.
+- `GET /api/studios/:id` and `GET /api/studios/:id/reviews` — public details and reviews.
+- `GET /api/studios/:id/availability?date=YYYY-MM-DD` — confirmed occupied time windows for a date.
+- `POST /api/studios`, `PATCH /api/studios/:id`, `DELETE /api/studios/:id` — authenticated owner operations.
+- `POST /api/bookings`, `GET /api/bookings/me`, `GET /api/bookings/host` and booking status endpoints — authenticated booking lifecycle.
+- `GET /api/wishlist`, `POST /api/wishlist` — authenticated saved studios.
+- `POST /api/newsletter` — newsletter subscription.
+
+## Vercel deployment
+
+The production backend is hosted in the Vercel project named `as`, connected to this repository. Vercel detects the Express app from the default export in `src/index.ts`. Set the repository root, Node.js 22 and the environment variables shown in `.env.example`.
+
+## Examiner test account
+
+The assessment demo account is created in the shared StudioSpace auth database:
+
+- Email: `examiner@studiospace.demo`
+- Password: `StudioSpace!2026`
+
+This account is for assessment only. Sign in through the frontend; protected API routes require a valid Better Auth session and its HTTPOnly JWT cookie.
+
+Never commit `.env`, database connection strings, OAuth client secrets or private production credentials.

@@ -24,7 +24,7 @@ class BookingConflictError extends Error {
 /** Serializes host confirmations for one studio/date across API instances. */
 async function withStudioDateLock<T>(studioId: string, date: string, work: () => Promise<T>): Promise<T> {
   const db = await getDb();
-  const locks = db.collection("bookingLocks");
+  const locks = db.collection<{ _id: string; token: string; expiresAt: Date; updatedAt: Date }>("bookingLocks");
   const lockId = `${studioId}:${date}`;
   const token = randomUUID();
   const now = new Date();

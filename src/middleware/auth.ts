@@ -31,7 +31,7 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     req.user = {
       id,
       email,
-      name: typeof payload.name === "string" ? payload.name : email.split("@")[0],
+      name: typeof payload.name === "string" ? payload.name : (email.split("@")[0] ?? email),
     };
     return next();
   } catch {

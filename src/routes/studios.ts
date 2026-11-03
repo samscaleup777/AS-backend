@@ -53,18 +53,20 @@ router.get("/", (req, res, next) =>
 
 router.get("/:id/reviews", async (req, res, next) => {
   try {
-    if (!ObjectId.isValid(req.params.id)) return res.status(400).json({ message: "Invalid studio ID." });
+    const id = req.params.id;
+    if (typeof id !== "string" || !ObjectId.isValid(id)) return res.status(400).json({ message: "Invalid studio ID." });
     const db = await getDb();
-    const data = await db.collection("reviews").find({ studioId: req.params.id }).sort({ createdAt: -1 }).limit(30).toArray();
+    const data = await db.collection("reviews").find({ studioId: id }).sort({ createdAt: -1 }).limit(30).toArray();
     res.json({ data });
   } catch (error) { next(error); }
 });
 
 router.get("/:id", async (req, res, next) => {
   try {
-    if (!ObjectId.isValid(req.params.id)) return res.status(400).json({ message: "Invalid studio ID." });
+    const id = req.params.id;
+    if (typeof id !== "string" || !ObjectId.isValid(id)) return res.status(400).json({ message: "Invalid studio ID." });
     const db = await getDb();
-    const data = await db.collection("studios").findOne({ _id: new ObjectId(req.params.id) });
+    const data = await db.collection("studios").findOne({ _id: new ObjectId(id) });
     if (!data) return res.status(404).json({ message: "Studio not found." });
     res.json({ data });
   } catch (error) { next(error); }
@@ -93,13 +95,14 @@ router.post("/", requireAuth, async (req, res, next) => {
 
 router.patch("/:id", requireAuth, async (req, res, next) => {
   try {
-    if (!ObjectId.isValid(req.params.id)) return res.status(400).json({ message: "Invalid studio ID." });
+    const id = req.params.id;
+    if (typeof id !== "string" || !ObjectId.isValid(id)) return res.status(400).json({ message: "Invalid studio ID." });
     const parsed = studioSchema.partial().safeParse(req.body);
     if (!parsed.success) return res.status(400).json({ message: "Please review the updated information.", issues: parsed.error.issues });
     if (!Object.keys(parsed.data).length) return res.status(400).json({ message: "No changes were provided." });
     const db = await getDb();
     const result = await db.collection("studios").findOneAndUpdate(
-      { _id: new ObjectId(req.params.id), ownerEmail: req.user!.email },
+      { _id: new ObjectId(id), ownerEmail: req.user!.email },
       { $set: { ...parsed.data, updatedAt: new Date() } },
       { returnDocument: "after" },
     );
@@ -110,9 +113,10 @@ router.patch("/:id", requireAuth, async (req, res, next) => {
 
 router.delete("/:id", requireAuth, async (req, res, next) => {
   try {
-    if (!ObjectId.isValid(req.params.id)) return res.status(400).json({ message: "Invalid studio ID." });
+    const id = req.params.id;
+    if (typeof id !== "string" || !ObjectId.isValid(id)) return res.status(400).json({ message: "Invalid studio ID." });
     const db = await getDb();
-    const result = await db.collection("studios").deleteOne({ _id: new ObjectId(req.params.id), ownerEmail: req.user!.email });
+    const result = await db.collection("studios").deleteOne({ _id: new ObjectId(id), ownerEmail: req.user!.email });
     if (!result.deletedCount) return res.status(404).json({ message: "Studio not found or you do not own this listing." });
     res.json({ message: "Studio deleted." });
   } catch (error) { next(error); }

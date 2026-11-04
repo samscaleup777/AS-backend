@@ -34,7 +34,7 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     }
     const db = await getDb();
     const account = await db.collection("user").findOne(
-      { $or: [{ _id: id }, { email }] },
+      { email },
       { projection: { twoFactorEnabled: 1, adminAccessDisabled: 1 } },
     );
     if (!account || account.twoFactorEnabled !== true) {

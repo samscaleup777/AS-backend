@@ -27,7 +27,7 @@ Express 5, Node.js 22, TypeScript 5, MongoDB 6, Zod 4, jose, Helmet, CORS, cooki
 1. Install Node.js 22.
 2. Clone this repository.
 3. Copy `.env.example` to `.env`.
-4. Configure `MONGODB_URI`, `MONGODB_DB=studiospace`, `AUTH_BASE_URL` (the frontend origin), and `CLIENT_ORIGIN` (the frontend origin).
+4. Configure `MONGODB_URI`, `MONGODB_DB=studiospace`, `AUTH_BASE_URL` (the frontend origin), `CLIENT_ORIGIN` (the frontend origin), and `ADMIN_EMAILS` (a comma-separated list of approved administrator email addresses). Configure the exact same `ADMIN_EMAILS` value in the frontend auth project. Public registration always receives the `user` role; the server-issued JWT marks an account as `admin` only when its verified email is on the frontend allowlist, and this API independently checks its own allowlist. If either allowlist is missing or does not match, admin access is denied.
 5. Run `npm install`.
 6. Run `npm run dev` to start the API on port 4000.
 
@@ -52,6 +52,8 @@ The isolated booking-rule suite covers calendar-date validation, 24-hour time wi
 - `POST /api/bookings`, `GET /api/bookings/me`, `GET /api/bookings/host` and booking status endpoints — authenticated booking lifecycle.
 - `GET /api/wishlist`, `POST /api/wishlist` — authenticated saved studios.
 - `POST /api/newsletter` — newsletter subscription.
+- `GET /api/admin/me`, `/overview`, `/users`, `/studios`, `/bookings` — administrator-only operations.
+- `DELETE /api/admin/studios/:id` — administrator-only listing moderation.
 
 ## Vercel deployment
 

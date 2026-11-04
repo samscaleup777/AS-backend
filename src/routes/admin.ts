@@ -58,6 +58,13 @@ router.patch("/users/:id", async (req, res, next) => {
       suspended: z.boolean().optional(),
     }).strict().safeParse(req.body);
     if (!parsed.success || !Object.keys(parsed.data).length) return res.status(400).json({ message: "Provide a valid name or account status." });
+    const targetEmail = req.params.id.trim().toLowerCase();
+    const protectedAdmins = new Set(
+      (process.env.ADMIN_EMAILS || "").split(",").map((value) => value.trim().toLowerCase()).filter(Boolean),
+    );
+    if (parsed.data.suspended === true && protectedAdmins.has(targetEmail)) {
+      return res.status(400).json({ message: "The two designated administrator identities cannot be suspended from member management." });
+    }
     const db = await getDb();
     const set: Record<string, unknown> = { updatedAt: new Date() };
     if (parsed.data.name !== undefined) set.name = parsed.data.name;

@@ -34,7 +34,7 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     }
     const db = await getDb();
     const account = await db.collection("user").findOne(
-      { _id: id },
+      { $or: [{ _id: id }, { email }] },
       { projection: { twoFactorEnabled: 1, adminAccessDisabled: 1 } },
     );
     if (!account || account.twoFactorEnabled !== true) {
@@ -69,7 +69,7 @@ export async function requireAdmin(req: Request, res: Response, next: NextFuncti
   try {
     const db = await getDb();
     const adminRecord = await db.collection("user").findOne(
-      { _id: req.user.id, email: req.user.email.toLowerCase() },
+      { email: req.user.email.toLowerCase() },
       { projection: { adminPasswordVerified: 1, twoFactorEnabled: 1, adminAccessDisabled: 1 } },
     );
     if (adminRecord?.adminPasswordVerified !== true || adminRecord?.twoFactorEnabled !== true || adminRecord?.adminAccessDisabled === true) {

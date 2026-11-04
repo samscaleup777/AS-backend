@@ -63,7 +63,7 @@ router.patch("/users/:id", async (req, res, next) => {
     if (parsed.data.name !== undefined) set.name = parsed.data.name;
     if (parsed.data.suspended !== undefined) set.adminAccessDisabled = parsed.data.suspended;
     const result = await db.collection("user").findOneAndUpdate(
-      { _id: req.params.id },
+      { email: req.params.id.trim().toLowerCase() },
       { $set: set },
       { returnDocument: "after", projection: { name: 1, email: 1, adminAccessDisabled: 1, twoFactorEnabled: 1 } },
     );

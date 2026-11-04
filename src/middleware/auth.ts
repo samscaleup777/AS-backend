@@ -1,5 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import { createRemoteJWKSet, jwtVerify } from "jose";
+import { getDb } from "../lib/db.js";
 
 export type AuthUser = { id: string; email: string; name: string; role: "admin" | "user" };
 declare global {
@@ -42,7 +43,7 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
 
 /** Admin access is granted only when both the signed role claim and this API's
  * independently configured email allowlist agree. Missing configuration denies access. */
-export function requireAdmin(req: Request, res: Response, next: NextFunction) {
+export async function requireAdmin(req: Request, res: Response, next: NextFunction) {
   const allowedEmails = new Set(
     (process.env.ADMIN_EMAILS || "")
       .split(",")
@@ -52,5 +53,19 @@ export function requireAdmin(req: Request, res: Response, next: NextFunction) {
   if (!req.user || req.user.role !== "admin" || !allowedEmails.has(req.user.email.toLowerCase())) {
     return res.status(403).json({ message: "Administrator access is required." });
   }
-  return next();
+  try {
+    // Require the persistent marker set only after the approved email completes
+    // the shared-password sign-in flow. This also rejects stale pre-policy JWTs.
+    const db = await getDb();
+    const adminRecord = await db.collection("user").findOne(
+      { email: req.user.email.toLowerCase() },
+      { projection: { adminPasswordVerified: 1 } },
+    );
+    if (adminRecord?.adminPasswordVerified !== true) {
+      return res.status(403).json({ message: "Administrator password verification is required." });
+    }
+    return next();
+  } catch (error) {
+    return next(error);
+  }
 }

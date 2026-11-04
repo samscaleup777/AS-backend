@@ -8,6 +8,7 @@ import studiosRouter from "./routes/studios.js";
 import bookingsRouter from "./routes/bookings.js";
 import wishlistRouter from "./routes/wishlist.js";
 import newsletterRouter from "./routes/newsletter.js";
+import adminRouter from "./routes/admin.js";
 
 const app = express();
 app.disable("x-powered-by");
@@ -52,6 +53,7 @@ app.use("/api/studios", studiosRouter);
 app.use("/api/bookings", bookingsRouter);
 app.use("/api/wishlist", wishlistRouter);
 app.use("/api/newsletter", newsletterRouter);
+app.use("/api/admin", adminRouter);
 app.use((_req, res) => res.status(404).json({ message: "API route not found." }));
 app.use((error: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error("API error:", error instanceof Error ? error.message : "Unknown error");
